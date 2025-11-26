@@ -164,6 +164,57 @@ class UnlinkMKV:
             self.error(f"Command execution failed: {e}")
             raise
 
+    def mkvmerge_build(self, output_file: Path, *args) -> str:
+        """Execute mkvmerge with special handling for warnings (exit code 1).
+
+        mkvmerge returns exit code 1 for warnings (like subtitle codec mismatch),
+        which is not a fatal error if the output file was created successfully.
+        """
+        full_args = [self.opt['mkvmerge'], '--ui-language', self.opt['locale']] + list(args)
+        self.logger.debug(f"sys > {' '.join(str(a) for a in full_args)}")
+
+        try:
+            result = subprocess.run(
+                full_args,
+                capture_output=True,
+                text=True,
+                check=False
+            )
+            output = result.stdout + result.stderr
+            for line in output.splitlines():
+                self.logger.debug(f"sys < {line}")
+
+            # Exit code 0: success
+            if result.returncode == 0:
+                return output
+
+            # Exit code 1: warnings - check if output file exists
+            if result.returncode == 1 and output_file.exists():
+                self.warn("mkvmerge completed with warnings (exit code 1), but output file was created")
+                if result.stdout:
+                    # Log warnings at warning level
+                    for line in result.stdout.splitlines():
+                        if 'warning' in line.lower():
+                            self.warn(f"  {line}")
+                return output
+
+            # Other exit codes or no output file: error
+            self.error(f"Command failed with exit code {result.returncode}")
+            self.error(f"Command: {' '.join(str(a) for a in full_args)}")
+            if result.stderr:
+                self.error("stderr:")
+                for line in result.stderr.splitlines():
+                    self.error(f"  {line}")
+            if result.stdout:
+                self.error("stdout:")
+                for line in result.stdout.splitlines():
+                    self.error(f"  {line}")
+            raise RuntimeError(f"Command failed with exit code {result.returncode}")
+
+        except subprocess.SubprocessError as e:
+            self.error(f"Command execution failed: {e}")
+            raise
+
     def is_linked(self, item: Path) -> bool:
         """Check if MKV file contains segmented chapters."""
         self.more()
@@ -886,15 +937,15 @@ class UnlinkMKV:
 
         output_file = self.encodesdir / item.name
         if self.opt.get('chapters', True):
-            self.sys(
-                self.opt['mkvmerge'], '--ui-language', self.opt['locale'],
+            self.mkvmerge_build(
+                output_file,
                 '--no-chapters', '-M', '--chapters',
                 str(self.tmpdir / f"{parent}-chapters.xml"),
                 '-o', str(output_file), *prts
             )
         else:
-            self.sys(
-                self.opt['mkvmerge'], '--ui-language', self.opt['locale'],
+            self.mkvmerge_build(
+                output_file,
                 '--no-chapters', '-M', '-o', str(output_file), *prts
             )
 
