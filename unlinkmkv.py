@@ -144,10 +144,20 @@ class UnlinkMKV:
             output = result.stdout + result.stderr
             for line in output.splitlines():
                 self.logger.debug(f"sys < {line}")
+
+            # Check if command failed
+            if result.returncode != 0:
+                self.error(f"Command failed with exit code {result.returncode}")
+                self.error(f"Command: {' '.join(str(a) for a in args)}")
+                if result.stderr:
+                    for line in result.stderr.splitlines():
+                        self.error(f"  {line}")
+                raise RuntimeError(f"Command failed with exit code {result.returncode}")
+
             return output
-        except Exception as e:
-            self.error(f"Command failed: {e}")
-            return ""
+        except subprocess.SubprocessError as e:
+            self.error(f"Command execution failed: {e}")
+            raise
 
     def is_linked(self, item: Path) -> bool:
         """Check if MKV file contains segmented chapters."""
