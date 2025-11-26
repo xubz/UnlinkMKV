@@ -754,7 +754,7 @@ class UnlinkMKV:
 
             # External segments (with 'id') always use their linked file directly
             if 'id' in segment:
-                if 'file' in segment and (self.opt.get('ignoresegmentstart') or segment['start'].startswith('00:00:00.')):
+                if 'file' in segment:
                     self.info(f"part (external) {segment['file']}")
                     parts.append(segment['file'])
             # Internal segments (no 'id') use split files or original file
