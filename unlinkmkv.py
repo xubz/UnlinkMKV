@@ -749,23 +749,24 @@ class UnlinkMKV:
         count = 1
         LAST = None
 
-        for segment in segments:
+        for i, segment in enumerate(segments):
+            self.debug(f"segment {i}: id={segment.get('id', 'none')}, has_file={('file' in segment)}, start={segment.get('start', 'none')}")
             if 'id' in segment and (self.opt.get('ignoresegmentstart') or segment['start'].startswith('00:00:00.')):
                 # External segment - use the linked file
                 if 'file' in segment:
-                    self.debug(f"part {segment['file']}")
+                    self.info(f"part {segment['file']}")
                     parts.append(segment['file'])
             elif 'file' in segment and (LAST != segment.get('file') or not splits):
                 # Internal segment with file - either use directly or it's a split
                 if splits:
                     # This internal segment is part of the split file
                     f = self.partsdir / f"split-{count:03d}.mkv"
-                    self.debug(f"part {f}")
+                    self.info(f"part {f}")
                     parts.append(f)
                     count += 1
                 else:
                     # No splits, use the file directly
-                    self.debug(f"part {segment['file']}")
+                    self.info(f"part {segment['file']}")
                     parts.append(segment['file'])
             LAST = segment.get('file')
 
