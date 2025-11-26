@@ -72,8 +72,12 @@ class UnlinkMKV:
             self.tmpdir = self.roottmp / str(os.getpid())
 
         if self.tmpdir.exists():
-            shutil.rmtree(self.tmpdir, ignore_errors=True)
-            self.logger.debug(f"removed tmp {self.tmpdir}")
+            try:
+                shutil.rmtree(self.tmpdir)
+                self.logger.debug(f"removed tmp {self.tmpdir}")
+            except (OSError, PermissionError) as e:
+                self.logger.error(f"failed to remove tmp {self.tmpdir}: {e}")
+                raise RuntimeError(f"Cannot clean up temporary directory: {e}")
 
         self.attachdir = self.tmpdir / 'attach'
         self.partsdir = self.tmpdir / 'parts'
@@ -82,7 +86,11 @@ class UnlinkMKV:
 
         for directory in [self.tmpdir, self.attachdir, self.partsdir,
                          self.encodesdir, self.subtitlesdir]:
-            directory.mkdir(parents=True, exist_ok=True)
+            try:
+                directory.mkdir(parents=True, exist_ok=True)
+            except OSError as e:
+                self.logger.error(f"failed to create directory {directory}: {e}")
+                raise RuntimeError(f"Cannot create temporary directory structure: {e}")
 
         self.logger.debug(f"created tmp {self.tmpdir}")
 
