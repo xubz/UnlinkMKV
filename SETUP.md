@@ -85,6 +85,20 @@ python unlinkmkv.py /path/to/directory/
 python unlinkmkv.py --outdir /output/path file.mkv
 ```
 
+## Important Notes
+
+### FLAC to ALAC Conversion
+Files with FLAC audio will be automatically converted to ALAC (Apple Lossless):
+- **Why**: mkvmerge cannot split MKV files with FLAC audio tracks
+- **Quality**: ALAC is also lossless - no quality loss
+- **Compatibility**: ALAC works in Jellyfin, Plex, and most modern players
+- **Output**: Files will have `-alac.mkv` suffix
+
+If you prefer FLAC output, you can manually convert the final files back using:
+```bash
+ffmpeg -i output-alac.mkv -c:v copy -c:a flac output.mkv
+```
+
 ## Troubleshooting
 
 ### "command not found" errors

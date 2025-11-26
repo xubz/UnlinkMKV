@@ -11,12 +11,12 @@ A segmented MKV is an MKV that utilizes external additional MKV files to create 
 ## Features
 
 - Automatically detects and processes segmented MKV files
-- Preserves chapter information
+- Preserves chapter information with nanosecond precision
 - Optional audio/video re-encoding for codec compatibility
 - Subtitle style normalization across segments
-- FLAC audio handling (temporary conversion for processing)
-- Attachment extraction and merging
-- Metadata preservation
+- FLAC to ALAC conversion (outputs lossless ALAC for compatibility)
+- Font attachment extraction and merging
+- Metadata preservation (track names, languages, flags)
 
 ## Installation
 
@@ -165,8 +165,9 @@ Where `ep-1.mkv` links to the opening and ending files:
 - Written in Python 3.8+ instead of Perl
 - Uses `lxml` for XML processing instead of XML::LibXML
 - Uses native Python `subprocess`, `pathlib`, and `argparse` modules
-- Same functionality and command-line interface
-- Same configuration file format
+- **ALAC output**: FLAC audio is converted to ALAC (still lossless) and kept in output for faster processing and better compatibility
+- Better error handling with specific exception types
+- Same command-line interface and configuration file format
 
 ## License
 
@@ -192,8 +193,13 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
+## Repository Structure
+
+- **Python Implementation** (root): Modern Python 3.8+ version
+- **Original Perl** (`original-perl/`): Reference implementation for comparison
+
 ## Support
 
-For issues with the Python port, please file an issue in the repository.
+For issues with the Python port: https://github.com/xubz/UnlinkMKV/issues
 
-For questions about the original Perl version, see: https://github.com/gnoling/UnlinkMKV
+Original Perl version: https://github.com/gnoling/UnlinkMKV
