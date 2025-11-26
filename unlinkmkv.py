@@ -90,6 +90,13 @@ class UnlinkMKV:
                 directory.mkdir(parents=True, exist_ok=True)
             except OSError as e:
                 self.logger.error(f"failed to create directory {directory}: {e}")
+                if e.errno == 12:  # Cannot allocate memory
+                    raise RuntimeError(
+                        f"Cannot create temporary directory on this filesystem.\n"
+                        f"The error '{e}' usually indicates filesystem limitations on external drives.\n"
+                        f"Solution: Use --tmpdir to specify a location on your local drive:\n"
+                        f"  python unlinkmkv.py --tmpdir /tmp/unlinkmkv ..."
+                    )
                 raise RuntimeError(f"Cannot create temporary directory structure: {e}")
 
         self.logger.debug(f"created tmp {self.tmpdir}")
