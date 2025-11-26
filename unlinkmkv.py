@@ -751,24 +751,28 @@ class UnlinkMKV:
 
         for i, segment in enumerate(segments):
             self.debug(f"segment {i}: id={segment.get('id', 'none')}, has_file={('file' in segment)}, start={segment.get('start', 'none')}")
-            if 'id' in segment and (self.opt.get('ignoresegmentstart') or segment['start'].startswith('00:00:00.')):
-                # External segment - use the linked file
-                if 'file' in segment:
-                    self.info(f"part {segment['file']}")
+
+            # External segments (with 'id') always use their linked file directly
+            if 'id' in segment:
+                if 'file' in segment and (self.opt.get('ignoresegmentstart') or segment['start'].startswith('00:00:00.')):
+                    self.info(f"part (external) {segment['file']}")
                     parts.append(segment['file'])
+            # Internal segments (no 'id') use split files or original file
             elif 'file' in segment and (LAST != segment.get('file') or not splits):
-                # Internal segment with file - either use directly or it's a split
                 if splits:
                     # This internal segment is part of the split file
                     f = self.partsdir / f"split-{count:03d}.mkv"
-                    self.info(f"part {f}")
+                    self.info(f"part (split) {f}")
                     parts.append(f)
                     count += 1
                 else:
                     # No splits, use the file directly
-                    self.info(f"part {segment['file']}")
+                    self.info(f"part (direct) {segment['file']}")
                     parts.append(segment['file'])
-            LAST = segment.get('file')
+
+            # Track last file for deduplication
+            if 'file' in segment and 'id' not in segment:
+                LAST = segment.get('file')
 
         self.less()
 
