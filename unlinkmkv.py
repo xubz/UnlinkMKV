@@ -758,21 +758,19 @@ class UnlinkMKV:
                     self.info(f"part (external) {segment['file']}")
                     parts.append(segment['file'])
             # Internal segments (no 'id') use split files or original file
-            elif 'file' in segment and (LAST != segment.get('file') or not splits):
+            elif 'file' in segment:
                 if splits:
                     # This internal segment is part of the split file
+                    # Always add split files - they're all needed
                     f = self.partsdir / f"split-{count:03d}.mkv"
                     self.info(f"part (split) {f}")
                     parts.append(f)
                     count += 1
-                else:
-                    # No splits, use the file directly
+                elif LAST != segment.get('file'):
+                    # No splits - only add if different from last file (deduplication)
                     self.info(f"part (direct) {segment['file']}")
                     parts.append(segment['file'])
-
-            # Track last file for deduplication
-            if 'file' in segment and 'id' not in segment:
-                LAST = segment.get('file')
+                    LAST = segment.get('file')
 
         self.less()
 
