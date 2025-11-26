@@ -150,7 +150,12 @@ class UnlinkMKV:
                 self.error(f"Command failed with exit code {result.returncode}")
                 self.error(f"Command: {' '.join(str(a) for a in args)}")
                 if result.stderr:
+                    self.error("stderr:")
                     for line in result.stderr.splitlines():
+                        self.error(f"  {line}")
+                if result.stdout:
+                    self.error("stdout:")
+                    for line in result.stdout.splitlines():
                         self.error(f"  {line}")
                 raise RuntimeError(f"Command failed with exit code {result.returncode}")
 
